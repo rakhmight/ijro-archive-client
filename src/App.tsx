@@ -1,26 +1,38 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { FC, useEffect, useState } from 'react'
+import { BrowserRouter } from 'react-router-dom'
+import AppRoutes from './routes'
+import './assets/css/general.css'
+import GeneralLayout from './components/layouts/general-layout/GeneralLayout'
+import { useActions } from './hooks/use-actions/UseActions'
 
-function App() {
+const App: FC = () => {
+  const { setSessionID, setSessionToken } = useActions()
+
+  const [ showUI, setShowUI ] =  useState(false)
+
+  useEffect(() => {
+    const sessionID = localStorage.getItem('sessionID')
+    const sessionToken = localStorage.getItem('sessionToken')
+
+    if(sessionID && sessionToken){      
+      setSessionID(sessionID)
+      setSessionToken(sessionToken)
+    }
+
+    setShowUI(true)
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <BrowserRouter>
+      <GeneralLayout>
+        {
+          showUI && (
+            <AppRoutes />
+          )
+        }
+      </GeneralLayout>
+    </BrowserRouter>
+  )
 }
 
-export default App;
+export default App
