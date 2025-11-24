@@ -10,9 +10,12 @@ export const makeReq = async (address:string, method: string, body?: any, auth?:
         const req = await fetch(address, {
             method,
             body: isFile ? body : JSON.stringify(body),
+            cache: 'no-store',
             headers: isFile ? {
                 ...authHeaders
             } : {
+                "Cache-Control": 'no-cache',
+                "Pragma": 'no-cache',
                 "Content-Type": "application/json",
                 ...authHeaders
             },
@@ -22,7 +25,10 @@ export const makeReq = async (address:string, method: string, body?: any, auth?:
     } else if(method == "GET"){        
         const req = await fetch(address, {
             method,
+            cache: 'no-store',
             headers: {
+                "Cache-Control": 'no-cache',
+                "Pragma": 'no-cache',
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
                 ...authHeaders

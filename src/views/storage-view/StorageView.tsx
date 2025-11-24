@@ -338,8 +338,9 @@ const StorageView : FC = () => {
                                     </MenuButton>
                                     <MenuList>
                                         {
-                                            menu.map(item => (
+                                            menu.map((item, i) => (
                                                 <MenuItem
+                                                key={i}
                                                 className='flex items-center justify-between'
                                                 onClick={() => setListMode(item.value)}
                                                 >
@@ -381,8 +382,9 @@ const StorageView : FC = () => {
                                         </MenuButton>
                                         <MenuList>
                                             {
-                                                filters.map(item => (
+                                                filters.map((item, i) => (
                                                     <MenuItem
+                                                    key={i}
                                                     className='flex items-center justify-between'
                                                     onClick={() => setSelectedFilter(item.value)}
                                                     >
@@ -412,8 +414,9 @@ const StorageView : FC = () => {
                                         </MenuButton>
                                         <MenuList>
                                             {
-                                                sorting.map(item => (
+                                                sorting.map((item, i) => (
                                                     <MenuItem
+                                                    key={i}
                                                     className='flex items-center justify-between'
                                                     onClick={() => setSelectedSort(item.value)}
                                                     >

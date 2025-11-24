@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState:Params = {
-    serverAddress: 'http://95.182.119.105/api/v1',
-    serverBase: 'http://95.182.119.105'
+    serverAddress: 'http://http://ijroarchive.uz//api/v1',
+    serverBase: 'http://http://ijroarchive.uz/'
 }
 
 export const paramsSlice = createSlice({
