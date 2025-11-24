@@ -9,12 +9,10 @@ import { RootState } from '@/store'
 import { makeReq } from '../../utils/makeReq'
 import { useAppToast } from '../../hooks/useAppToast/useAppToast'
 import { ToastColorScheme, ToastStatus } from '../../hooks/useAppToast/enums'
-import { useActions } from '../../hooks/use-actions/UseActions'
 
 const AuthView : FC = () => {
 
-    const { params, session } = useSelector((state:RootState)=>state)
-    const { setSessionID, setSessionToken } = useActions()
+    const { params } = useSelector((state:RootState)=>state)
     const navigate = useNavigate()
     const { showToast } = useAppToast()
     
@@ -38,22 +36,13 @@ const AuthView : FC = () => {
 
                 if(sessionData){
                     if(sessionData.statusCode == 200){
+                        showToast({
+                            title: 'Успешный вход',
+                            status: ToastStatus.Success,
+                            colorScheme: ToastColorScheme.Success
+                        })
 
-                        if(sessionData.data){
-                            setSessionID(sessionData.data.id)
-                            setSessionToken(sessionData.data.token)
-
-                            localStorage.setItem('sessionID', sessionData.data.id)
-                            localStorage.setItem('sessionToken', sessionData.data.token)
-
-                            showToast({
-                                title: 'Успешный вход',
-                                status: ToastStatus.Success,
-                                colorScheme: ToastColorScheme.Success
-                            })
-
-                            setTimeout(() => navigate('/storage'), 1000)
-                        }
+                        setTimeout(() => navigate('/storage'), 1000)
                     } else {
                         setBlockBtn(false)
                         if(sessionData.statusCode == 404){                            
@@ -90,11 +79,26 @@ const AuthView : FC = () => {
     }, [password])
 
     useEffect(() => {
-        console.log(session.id);
-        
-        if(session.id && session.token){
-            navigate('/storage')
+
+        const checkAccess = async () => {            
+            try {
+                const checkData = await makeReq(`${params.serverAddress}/check`, 'GET')
+
+                if(checkData){
+                    if(checkData.statusCode == 200){
+                        navigate('/storage')
+                    }
+                }
+            } catch (error) {
+                return showToast({
+                    title: 'Север не отвечает',
+                    status: ToastStatus.Error,
+                    colorScheme: ToastColorScheme.Error
+                })
+            }
         }
+        
+        checkAccess()
     }, [])
   
     return(

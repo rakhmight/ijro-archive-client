@@ -22,8 +22,8 @@ import { GiCobweb } from "react-icons/gi";
 
 const StorageView : FC = () => {
 
-    const { params, session, files } = useSelector((state:RootState)=>state)
-    const { setSessionID, setSessionToken, setFiles, addFile } = useActions()
+    const { params, files } = useSelector((state:RootState)=>state)
+    const { setFiles, addFile } = useActions()
     const navigate = useNavigate()
     const { showToast } = useAppToast()
 
@@ -104,12 +104,8 @@ const StorageView : FC = () => {
 
         const fileUrl = `${ params.serverBase }/public/${name}`; // Replace with your file URL
         const downloadFileName = name;
-        const customHeaders = {
-        'id': session.id,
-        'token': session.token
-        };
 
-        downloadFileWithHeaders(fileUrl, downloadFileName, customHeaders);
+        downloadFileWithHeaders(fileUrl, downloadFileName);
     }
 
     const handleFileUpload = async (event) => {
@@ -117,10 +113,7 @@ const StorageView : FC = () => {
         formData.append('file', event.target.files[0])
 
         try{
-            const fileData = await makeReq(`${params.serverAddress}/files`, 'POST', formData, {
-                id: session.id,
-                token: session.token
-            }, true)
+            const fileData = await makeReq(`${params.serverAddress}/files`, 'POST', formData, true)
 
             console.log(fileData);
 
@@ -180,21 +173,10 @@ const StorageView : FC = () => {
         })
     }
 
-    useEffect(() => {
-
-        if(!session.id && !session.token){
-            navigate('/')
-            return
-        }
-        
-        const checkAccess = async () => {
-            console.log(session.id);
-            
+    useEffect(() => {        
+        const checkAccess = async () => {            
             try {
-                const checkData = await makeReq(`${params.serverAddress}/check`, 'GET', {}, {
-                    id: session.id,
-                    token: session.token
-                })
+                const checkData = await makeReq(`${params.serverAddress}/check`, 'GET')
 
                 if(checkData){
                     if(checkData.statusCode == 401){
@@ -217,10 +199,7 @@ const StorageView : FC = () => {
 
             try {
                 
-                const filseData =  await makeReq(`${params.serverAddress}/files`, 'GET', {}, {
-                    id: session.id,
-                    token: session.token
-                })
+                const filseData =  await makeReq(`${params.serverAddress}/files`, 'GET')
 
                 if(filseData){
                     if(filseData.statusCode == 200){
