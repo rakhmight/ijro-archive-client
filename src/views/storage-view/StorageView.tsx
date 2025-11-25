@@ -30,7 +30,7 @@ import { formatBytes } from "bytes-formatter";
 const StorageView : FC = () => {
 
     const { params, files } = useSelector((state:RootState)=>state)
-    const { setFiles, addFile, switchSwitcher, updateFile, deleteFile, changeStatus } = useActions()
+    const { setFiles, addFile, switchSwitcher, updateFile, deleteFile, changeStatus, switchActionSwitcher } = useActions()
     const navigate = useNavigate()
     const { showToast } = useAppToast()
 
@@ -51,7 +51,7 @@ const StorageView : FC = () => {
 
     const [filesList, setFilesList] = useState<Array<File>>([])
 
-    useEffect(() => {
+    useEffect(() => {        
         if(!search) setFilesList(files.files)
         else {
             const filesTarget = files.files.filter(f => {
@@ -61,7 +61,7 @@ const StorageView : FC = () => {
 
             setFilesList(filesTarget)
         }
-    }, [search, checkIsDone])
+    }, [search, checkIsDone, params.actionSwitcher])
 
     const menu = [
         { label: 'Карточки', value: 'card', icon: LuLayoutGrid },
@@ -156,16 +156,17 @@ const StorageView : FC = () => {
 
     const handleFileUpload = async (event) => {
         const formData = new FormData()
-        formData.append('file', event.target.files[0])
+        formData.append('file', event.target.files[0])        
 
         const newFileTempID = Date.now() + ''
         addFile({
             id: newFileTempID,
             name: event.target.files[0].name,
             size: event.target.files[0].size,
-            createdAt: event.target.files[0].lastModifiedDate,
+            createdAt: event.target.files[0].lastModified,
             status: FileStatus.Load
         } as File)
+        switchActionSwitcher()
         
         showToast({
             title: 'Файл загружается',
@@ -189,6 +190,7 @@ const StorageView : FC = () => {
                         status: ToastStatus.Success,
                         colorScheme: ToastColorScheme.Success
                     })
+                    switchActionSwitcher()
                 } else {
                     deleteFile(newFileTempID)
                     if(fileData.statusCode == 401){
@@ -522,7 +524,7 @@ const StorageView : FC = () => {
                         }
 
                         {
-                            filesList.map(file => (
+                            ( search ? filesList : files.files ).map(file => (
                                 <div key={file.id} className='h-[232px] flex flex-col w-[280px] border-[2px] border-[var(--dark-main-color)] rounded hover:shadow-xl transition-all'>
 
                                     <div className='relative p-[30px] border-b-[1px] border-[var(--dark-main-color)] flex items-center justify-center'>

@@ -18,7 +18,7 @@ interface CtxMenuDeleteModalProps {
 const MenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({state, handler, fileID, unAuth}) => {
     
     const { files, params } = useSelector((state:RootState)=>state)
-    const { deleteFile } = useActions()
+    const { deleteFile, switchActionSwitcher } = useActions()
             
     const { showToast } = useAppToast()
 
@@ -55,7 +55,7 @@ const MenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({sta
                 if(fileData){
                      if(fileData.statusCode == 200) {
                         deleteFile(fileTarget.id)
-                        
+                        switchActionSwitcher()
                         showToast({
                             title: 'Файл удалён',
                             status: ToastStatus.Info,

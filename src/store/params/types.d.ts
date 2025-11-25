@@ -2,5 +2,6 @@ declare interface Params {
     serverAddress: string,
     serverBase: string,
 
-    switcher: boolean
+    switcher: boolean,
+    actionSwitcher: boolean
 }

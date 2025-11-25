@@ -4,7 +4,8 @@ const initialState:Params = {
     serverAddress: 'http://ijroarchive.uz/api/v1',
     serverBase: 'http://ijroarchive.uz',
 
-    switcher: true
+    switcher: true,
+    actionSwitcher: true
 }
 
 export const paramsSlice = createSlice({
@@ -13,7 +14,11 @@ export const paramsSlice = createSlice({
     reducers: {
         switchSwitcher: (state) => {
             state.switcher = !state.switcher
-        }
+        },
+        switchActionSwitcher: (state) => {
+            state.actionSwitcher = !state.actionSwitcher
+        },
+
     }
 })
 
