@@ -2,16 +2,18 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState:Params = {
     serverAddress: 'http://ijroarchive.uz/api/v1',
-    serverBase: 'http://ijroarchive.uz'
+    serverBase: 'http://ijroarchive.uz',
+
+    switcher: true
 }
 
 export const paramsSlice = createSlice({
     name: 'params',
     initialState,
     reducers: {
-        // addBall: (state, data:reducerBase<number>) => {
-        //     state.ball += data.payload
-        // },
+        switchSwitcher: (state) => {
+            state.switcher = !state.switcher
+        }
     }
 })
 

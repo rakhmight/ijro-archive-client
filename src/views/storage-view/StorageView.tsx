@@ -19,11 +19,16 @@ import { useActions } from '../../hooks/use-actions/UseActions';
 import { getFullTime } from '../../utils/getDate';
 import Empty from '../../components/ui/empty/Empty';
 import { GiCobweb } from "react-icons/gi";
+import { BsThreeDots } from "react-icons/bs";
+import MenuDelete from '../../components/structures/storage-view/storage-list/menu-delete/MenuDelete';
+import MenuQR from '../../components/structures/storage-view/storage-list/menu-qr/MenuQR';
+import MenuDeleteWrap from '../../components/structures/storage-view/storage-list/menu-delete/menu-delete-modal/MenuDeleteWrap';
+import MenuQRWrap from '../../components/structures/storage-view/storage-list/menu-qr/menu-qr-modal/MenuQRWrap';
 
 const StorageView : FC = () => {
 
     const { params, files } = useSelector((state:RootState)=>state)
-    const { setFiles, addFile } = useActions()
+    const { setFiles, addFile, switchSwitcher } = useActions()
     const navigate = useNavigate()
     const { showToast } = useAppToast()
 
@@ -36,6 +41,10 @@ const StorageView : FC = () => {
     const [selectedSort, setSelectedSort] = useState('a-z')
     
     const [changeDoor, setChangeDoor] = useState<boolean>(false)
+    
+    const [fileID, setFileID] = useState<string>('')
+    const [showQRModal, setShowQRModal] = useState<boolean>(false)
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
 
     const menu = [
         { label: 'Карточки', value: 'card', icon: LuLayoutGrid },
@@ -172,6 +181,17 @@ const StorageView : FC = () => {
             colorScheme: ToastColorScheme.Error
         })
     }
+
+    const openModal = (mode:string, id: string) => {        
+        if(mode == 'qr') setShowQRModal(!showQRModal)
+        else if(mode == 'delete') setShowDeleteModal(!showDeleteModal)
+
+        if(id){ 
+            setFileID(id)
+            switchSwitcher()
+        }
+    }
+
 
     useEffect(() => {        
         const checkAccess = async () => {            
@@ -439,15 +459,27 @@ const StorageView : FC = () => {
                                         <Icon fontSize='5rem' as={FaFile} color='var(--special-color)' />
 
                                         <div className='absolute right-[10px] bottom-[10px]'>
-                                            <IconButton
-                                            isRound={true}
-                                            variant='outline'
-                                            colorScheme='facebook'
-                                            aria-label='download'
-                                            fontSize='20px'
-                                            icon={<Icon as={FaDownload} />}
-                                            onClick={ () => downloadFile(file.name) }
-                                            />
+                                            <Menu>
+                                                <MenuButton
+                                                    as={IconButton}
+                                                    aria-label='Options'
+                                                    icon={<Icon as={BsThreeDots} />}
+                                                    variant='outline'
+                                                    rounded='full'
+                                                    colorScheme='main'
+                                                />
+                                                <MenuList>
+                                                    <MenuItem
+                                                    icon={<Icon color='var(--main-color)' as={FaDownload}/>}
+                                                    onClick={() => downloadFile(file.name) }
+                                                    >
+                                                    Скачать
+                                                    </MenuItem>
+
+                                                    <MenuQR openModal={openModal} file={file} />                                                    
+                                                    <MenuDelete openModal={openModal} file={file} />
+                                                </MenuList>
+                                            </Menu>
                                         </div>
                                     </div>
 
@@ -463,6 +495,11 @@ const StorageView : FC = () => {
 
                     </div>
                 </div>
+
+                
+                    
+                <MenuDeleteWrap show={showDeleteModal} fileID={fileID} />
+                <MenuQRWrap show={showQRModal} fileID={fileID} />
             </main>
         </StorageLayout>
     )

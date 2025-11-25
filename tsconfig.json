@@ -23,10 +23,10 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src"
-  ],
-  // "exclude": [
+  // "include": [
   //   "src"
-  // ]
+  // ],
+  "exclude": [
+    "src"
+  ]
 }

@@ -6,6 +6,7 @@ import NotFound from '../views/404-view/NotFoundView'
 const AppRoutes = () => (
     <Routes>
       <Route path='/' element={<AuthView />} />
+      <Route path='/' element={<StorageView />} />
       <Route path='/storage' element={<StorageView />} />
       <Route path='*' element={<NotFound />} />
     </Routes>
