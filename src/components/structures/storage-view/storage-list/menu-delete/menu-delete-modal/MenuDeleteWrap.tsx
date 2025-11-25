@@ -4,16 +4,17 @@ import MenuDeleteModal from './MenuDeleteModal';
 
 interface CtxMenuDeleteWrapProps {
     show: boolean,
-    fileID: string
+    fileID: string,
+    unAuth: () => void
 }
 
-const MenuDeleteWrap : FC<CtxMenuDeleteWrapProps> = ({ show, fileID }) => {
+const MenuDeleteWrap : FC<CtxMenuDeleteWrapProps> = ({ show, fileID, unAuth }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => onOpen, [show])
     
     return(
-        <MenuDeleteModal state={isOpen} handler={onClose} fileID={fileID} />
+        <MenuDeleteModal state={isOpen} handler={onClose} fileID={fileID} unAuth={unAuth} />
     )
 }
 

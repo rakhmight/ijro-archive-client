@@ -5,7 +5,7 @@ import { FC, useEffect, useState } from 'react'
 import { RootState } from '../../../../../../store'
 import QRCode from "react-qr-code";
 import { MdQrCodeScanner } from "react-icons/md";
-import { FaCopy } from "react-icons/fa";
+import { FaCopy, FaDownload } from "react-icons/fa";
 
 interface CtxMenuDeleteModalProps {
     fileID: string
@@ -61,12 +61,39 @@ const CtxMenuQRModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({stat
             <div className='flex flex-col gap-[25px] max-h-[450px] overflow-y-auto pr-1.5 relative text-[0.95rem]'>
                 <div className='w-full flex flex-col items-center gap-[20px]'>
                     <QRCode
+                    id="QRCode"
                     value={`${params.serverBase}/public/${fileName}`}
                     fgColor='var(--dark-main-color)'
                     size={200}
                     />
 
-                    <Text color='var(--main-color)'>{ fileName }</Text>
+                    <div className='flex flex-col items-center gap-[10px]'>
+                        <Text color='var(--main-color)'>{ fileName }</Text>
+                        <Button
+                        colorScheme='main'
+                        size='sm'
+                        onClick={() => {
+                            const svg = document.getElementById("QRCode");
+                            const svgData = new XMLSerializer().serializeToString(svg);
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            const img = new Image();
+                            img.onload = () => {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx.drawImage(img, 0, 0);
+                            const pngFile = canvas.toDataURL("image/png");
+                            const downloadLink = document.createElement("a");
+                            downloadLink.download = `(QR) ${fileName}`;
+                            downloadLink.href = `${pngFile}`;
+                            downloadLink.click();
+                            };
+                            img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
+                        }}
+                        >
+                            <Icon as={FaDownload} />
+                        </Button>
+                    </div>
                 </div>
 
                 <div className='flex'>

@@ -6,5 +6,6 @@ declare interface File {
     id: string,
     name: string,
     size: number,
-    createdAt: Date
+    createdAt: Date,
+    status: import('./enums').FileStatus
 }

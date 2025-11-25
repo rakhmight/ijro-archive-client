@@ -1,6 +1,6 @@
 export const makeReq = async (address:string, method: string, body?: any, isFile: boolean = false) => {
     
-    if(body && method == "POST"){
+    if(body && method == "POST" || method == "PUT"){
         const req = await fetch(address, {
             method,
             body: isFile ? body : JSON.stringify(body),
@@ -9,11 +9,10 @@ export const makeReq = async (address:string, method: string, body?: any, isFile
                 "Cache-Control": 'no-cache',
                 "Pragma": 'no-cache',
                 "Content-Type": "application/json"
-            },
-            referrerPolicy: "unsafe-url" 
+            }
         })
         return await req.json()
-    } else if(method == "GET"){        
+    } else if(method == "GET" || method == "DELETE"){        
         const req = await fetch(address, {
             method,
             cache: 'no-store',
@@ -22,8 +21,7 @@ export const makeReq = async (address:string, method: string, body?: any, isFile
                 "Pragma": 'no-cache',
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
-            },
-            referrerPolicy: "unsafe-url" 
+            }
         })
         return await req.json()
     }

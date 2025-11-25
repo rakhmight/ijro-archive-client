@@ -6,14 +6,19 @@ import { Button, Icon, Text } from '@chakra-ui/react'
 import { FC, useEffect, useState } from 'react'
 import { FaRegTrashAlt } from 'react-icons/fa'
 import { RootState } from '../../../../../../store'
+import { makeReq } from '../../../../../../utils/makeReq'
+import { ToastColorScheme, ToastStatus } from '../../../../../../hooks/useAppToast/enums'
+import { useActions } from '../../../../../../hooks/use-actions/UseActions'
 
 interface CtxMenuDeleteModalProps {
-    fileID: string
+    fileID: string,
+    unAuth: () => void
 }
 
-const CtxMenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({state, handler, fileID}) => {
+const MenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({state, handler, fileID, unAuth}) => {
     
-    const { files } = useSelector((state:RootState)=>state)
+    const { files, params } = useSelector((state:RootState)=>state)
+    const { deleteFile } = useActions()
             
     const { showToast } = useAppToast()
 
@@ -35,13 +40,49 @@ const CtxMenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({
     }
 
     useEffect(() => {
-
         const target = files.files.find(f => f.id == fileID)
         if(target) setFileName(target.name)
-    }, [])
+    }, [params.switcher])
 
     const deleteFileMethod = async () => {
 
+        const fileTarget = files.files.find(f => f.id == fileID)
+
+        if(fileTarget){
+            try {
+                const fileData = await makeReq(`${params.serverAddress}/files/${fileTarget.id}`, 'DELETE')
+                
+                if(fileData){
+                     if(fileData.statusCode == 200) {
+                        deleteFile(fileTarget.id)
+                        
+                        showToast({
+                            title: 'Файл удалён',
+                            status: ToastStatus.Info,
+                            colorScheme: ToastColorScheme.Info
+                        })
+                        handleClose()
+                    } else {
+                        if(fileData.statusCode == 401){
+                            unAuth()
+                        } else if(fileData.statusCode == 500){
+                            showToast({
+                                title: 'Ошибка на стороне сервера',
+                                status: ToastStatus.Error,
+                                colorScheme: ToastColorScheme.Error
+                            })
+                        }
+                    }
+                    
+                }
+            } catch (error) {
+                return showToast({
+                    title: 'Север не отвечает',
+                    status: ToastStatus.Error,
+                    colorScheme: ToastColorScheme.Error
+                })
+            }
+        }
     }
 
     return(
@@ -62,7 +103,7 @@ const CtxMenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({
                     color='var(--red-color)'
                     size='md'
                     width="100%"
-                    onClick={() => {}}
+                    onClick={deleteFileMethod}
                     isDisabled={inputsIsDisabled}
                     isLoading={isLoading}
                     >
@@ -74,4 +115,4 @@ const CtxMenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({
     )
 }
 
-export default CtxMenuDeleteModal
+export default MenuDeleteModal

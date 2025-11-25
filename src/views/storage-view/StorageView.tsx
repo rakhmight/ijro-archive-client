@@ -1,5 +1,5 @@
 import StorageLayout from '../../components/layouts/storage-layout/StorageLayout'
-import { Button, Heading, Icon, IconButton, Input, InputGroup, InputLeftElement, Menu, MenuButton, MenuItem, MenuList, Text, Tooltip } from '@chakra-ui/react'
+import { Button, Heading, Icon, IconButton, Input, InputGroup, InputLeftElement, Menu, MenuButton, MenuItem, MenuList, Text, Tooltip, Spinner  } from '@chakra-ui/react'
 import { FC, useEffect, useRef, useState } from 'react'
 import { FiLayout, FiSearch } from "react-icons/fi";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
@@ -24,11 +24,13 @@ import MenuDelete from '../../components/structures/storage-view/storage-list/me
 import MenuQR from '../../components/structures/storage-view/storage-list/menu-qr/MenuQR';
 import MenuDeleteWrap from '../../components/structures/storage-view/storage-list/menu-delete/menu-delete-modal/MenuDeleteWrap';
 import MenuQRWrap from '../../components/structures/storage-view/storage-list/menu-qr/menu-qr-modal/MenuQRWrap';
+import { FileStatus } from '../../store/files/enums';
+import { formatBytes } from "bytes-formatter";
 
 const StorageView : FC = () => {
 
     const { params, files } = useSelector((state:RootState)=>state)
-    const { setFiles, addFile, switchSwitcher } = useActions()
+    const { setFiles, addFile, switchSwitcher, updateFile, deleteFile, changeStatus } = useActions()
     const navigate = useNavigate()
     const { showToast } = useAppToast()
 
@@ -36,6 +38,7 @@ const StorageView : FC = () => {
     
     const [checkIsDone, setCheckIsDone] = useState(false)
 
+    const [search, setSearch] = useState<string>('')
     const [listMode, setListMode] = useState('list')
     const [selectedFilter, setSelectedFilter] = useState('all')
     const [selectedSort, setSelectedSort] = useState('a-z')
@@ -45,6 +48,20 @@ const StorageView : FC = () => {
     const [fileID, setFileID] = useState<string>('')
     const [showQRModal, setShowQRModal] = useState<boolean>(false)
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
+
+    const [filesList, setFilesList] = useState<Array<File>>([])
+
+    useEffect(() => {
+        if(!search) setFilesList(files.files)
+        else {
+            const filesTarget = files.files.filter(f => {
+                const fName = f.name.toLowerCase()
+                if(fName.includes(search.toLowerCase())) return f
+            })
+
+            setFilesList(filesTarget)
+        }
+    }, [search, checkIsDone])
 
     const menu = [
         { label: 'Карточки', value: 'card', icon: LuLayoutGrid },
@@ -84,8 +101,17 @@ const StorageView : FC = () => {
         }
     }
 
-    const downloadFile = async (name: string) => {        
-        async function downloadFileWithHeaders(url, fileName, headers = {}) {
+    const downloadFile = async (name: string, id: string) => {
+        
+        changeStatus({ status: FileStatus.Download, id })
+        showToast({
+            title: 'Файл выгружается',
+            description: 'Подождите, это может занять время',
+            status: ToastStatus.Info,
+            colorScheme: ToastColorScheme.Info
+        })
+
+        async function downloadFileWithHeaders(url:string, fileName:string, headers = {}) {
             try {
                 const response = await fetch(url, {
                 method: 'GET', // Or 'POST' if your server expects it
@@ -93,19 +119,30 @@ const StorageView : FC = () => {
                 });
 
                 if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const blob = await response.blob(); // Get the response as a Blob
 
-                // Create a temporary anchor element to trigger the download
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = fileName; // Set the desired filename for the download
-                document.body.appendChild(a);
-                a.click(); // Programmatically click the anchor to initiate download
-                document.body.removeChild(a); // Clean up the temporary element
-                URL.revokeObjectURL(a.href); // Release the object URL
+                if(blob){
+                    // Create a temporary anchor element to trigger the download
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = fileName; // Set the desired filename for the download
+                    document.body.appendChild(a);
+                    a.click(); // Programmatically click the anchor to initiate download
+                    document.body.removeChild(a); // Clean up the temporary element
+                    URL.revokeObjectURL(a.href); // Release the object URL
+                    
+                    changeStatus({ status: FileStatus.Done, id })
+                    showToast({
+                        title: 'Файл скачен!',
+                        description: fileName,
+                        status: ToastStatus.Success,
+                        colorScheme: ToastColorScheme.Success
+                    })
+                }
+
             } catch (error) {
                 console.error('Error downloading file:', error);
             }
@@ -121,25 +158,51 @@ const StorageView : FC = () => {
         const formData = new FormData()
         formData.append('file', event.target.files[0])
 
+        const newFileTempID = Date.now() + ''
+        addFile({
+            id: newFileTempID,
+            name: event.target.files[0].name,
+            size: event.target.files[0].size,
+            createdAt: event.target.files[0].lastModifiedDate,
+            status: FileStatus.Load
+        } as File)
+        
+        showToast({
+            title: 'Файл загружается',
+            description: 'Не обновляйте и не закрывайте страницу',
+            status: ToastStatus.Info,
+            colorScheme: ToastColorScheme.Info
+        })
+
         try{
             const fileData = await makeReq(`${params.serverAddress}/files`, 'POST', formData, true)
 
-            console.log(fileData);
-
             if(fileData){
                 if(fileData.statusCode == 200) {
-                    addFile(fileData.data)
+                    updateFile({
+                        tempID: newFileTempID,
+                        id: fileData.data.id,
+                        createdAt: fileData.data.createdAt
+                    })
                     showToast({
                         title: 'Новый файл загружен',
                         status: ToastStatus.Success,
                         colorScheme: ToastColorScheme.Success
                     })
                 } else {
+                    deleteFile(newFileTempID)
                     if(fileData.statusCode == 401){
                         unAuth()
                     } else if(fileData.statusCode == 400){
                         showToast({
                             title: 'Неверный формат запроса',
+                            status: ToastStatus.Error,
+                            colorScheme: ToastColorScheme.Error
+                        })
+                    } else if(fileData.statusCode == 424){
+                        showToast({
+                            title: 'Вы уже загружали файл',
+                            description: 'Нельзя загружать дубликаты файлов',
                             status: ToastStatus.Error,
                             colorScheme: ToastColorScheme.Error
                         })
@@ -168,11 +231,6 @@ const StorageView : FC = () => {
     }
 
     const unAuth = () => {
-        localStorage.removeItem('sessionID')
-        localStorage.removeItem('sessionToken')
-        setSessionID('')
-        setSessionToken('')
-
         navigate('/')
 
         return showToast({
@@ -214,7 +272,6 @@ const StorageView : FC = () => {
         
         checkAccess()
         .then(async () => {
-            setCheckIsDone(true)
             calcHeight()
 
             try {
@@ -223,7 +280,10 @@ const StorageView : FC = () => {
 
                 if(filseData){
                     if(filseData.statusCode == 200){
-                        setFiles(filseData.data)
+                        setCheckIsDone(true)
+                        setFiles(filseData.data.map((f: File) => {
+                            return { ...f, status: FileStatus.Done }
+                        }))
                     } else {
                         if(filseData.statusCode == 401){
                             unAuth()
@@ -368,7 +428,7 @@ const StorageView : FC = () => {
                                 <InputLeftElement pointerEvents='none'>
                                     <Icon as={FiSearch} color='gray.300' />
                                 </InputLeftElement>
-                                <Input type='text' placeholder='Поиск' />
+                                <Input type='text' placeholder='Поиск' value={search} onChange={(e) => setSearch(e.target.value)} />
                             </InputGroup>
                         </div>
 
@@ -442,7 +502,17 @@ const StorageView : FC = () => {
                     <div id="list" className={`h-[600px] mx-[30px] p-[30px] bg-[var(--block-bg)] rounded ${ files.files.length ? 'flex justify-fit flex-wrap gap-[30px]' : '' } overflow-y-auto`}>
 
                         {
-                            files.files.length == 0 && (
+                            !checkIsDone && (
+                                <div className='w-full h-full flex flex-col items-center justify-center gap-2.5 border-dashed border border-[#66666675] cursor-pointer'>
+                                    <Spinner color='#777' />
+                                    <Text color='#777' fontSize='0.9rem'>Идёт загрузка данных..
+                                    </Text>
+                                </div>
+                            )
+                        }
+
+                        {
+                            filesList.length == 0 && checkIsDone && (
                                 <Empty
                                 icon={GiCobweb}
                                 title="Файлов нет"
@@ -452,42 +522,55 @@ const StorageView : FC = () => {
                         }
 
                         {
-                            files.files.map(file => (
+                            filesList.map(file => (
                                 <div key={file.id} className='h-[232px] flex flex-col w-[280px] border-[2px] border-[var(--dark-main-color)] rounded hover:shadow-xl transition-all'>
 
                                     <div className='relative p-[30px] border-b-[1px] border-[var(--dark-main-color)] flex items-center justify-center'>
                                         <Icon fontSize='5rem' as={FaFile} color='var(--special-color)' />
 
-                                        <div className='absolute right-[10px] bottom-[10px]'>
-                                            <Menu>
-                                                <MenuButton
-                                                    as={IconButton}
-                                                    aria-label='Options'
-                                                    icon={<Icon as={BsThreeDots} />}
-                                                    variant='outline'
-                                                    rounded='full'
-                                                    colorScheme='main'
-                                                />
-                                                <MenuList>
-                                                    <MenuItem
-                                                    icon={<Icon color='var(--main-color)' as={FaDownload}/>}
-                                                    onClick={() => downloadFile(file.name) }
-                                                    >
-                                                    Скачать
-                                                    </MenuItem>
+                                        {
+                                            file.status != FileStatus.Done && (
+                                                <div className='absolute left-[10px] bottom-[10px] flex items-center gap-[5px]'>
+                                                    <Spinner size='sm' color='var(--main-color)' />
+                                                    <Icon as={file.status == FileStatus.Load ? FaUpload : FaDownload} color='var(--main-color)' />
+                                                </div>
+                                            )
+                                        }
 
-                                                    <MenuQR openModal={openModal} file={file} />                                                    
-                                                    <MenuDelete openModal={openModal} file={file} />
-                                                </MenuList>
-                                            </Menu>
-                                        </div>
+                                        {
+                                            file.status != FileStatus.Load && (
+                                                <div className='absolute right-[10px] bottom-[10px]'>
+                                                    <Menu>
+                                                        <MenuButton
+                                                            as={IconButton}
+                                                            aria-label='Options'
+                                                            icon={<Icon as={BsThreeDots} />}
+                                                            variant='outline'
+                                                            rounded='full'
+                                                            colorScheme='main'
+                                                        />
+                                                        <MenuList>
+                                                            <MenuItem
+                                                            icon={<Icon color='var(--main-color)' as={FaDownload}/>}
+                                                            onClick={() => downloadFile(file.name, file.id) }
+                                                            >
+                                                            Скачать
+                                                            </MenuItem>
+
+                                                            <MenuQR openModal={openModal} file={file} />                                                    
+                                                            <MenuDelete openModal={openModal} file={file} />
+                                                        </MenuList>
+                                                    </Menu>
+                                                </div>
+                                            )
+                                        }
                                     </div>
 
                                     <div className='h-full px-[15px] py-[10px] bg-[var(--main-color)]'>
                                         <Tooltip label={ file.name }>
                                             <Text className='two-line-clamp' fontSize='0.95rem' color='#fff'>{ file.name }</Text>
                                         </Tooltip>
-                                        <Text fontSize='0.9rem' color='#aaa'>{ getFullTime(file.createdAt) }</Text>
+                                        <Text fontSize='0.9rem' color='#aaa'>{ getFullTime(file.createdAt) } ({formatBytes(file.size)})</Text>
                                     </div>
                                 </div>
                             ))
@@ -498,7 +581,7 @@ const StorageView : FC = () => {
 
                 
                     
-                <MenuDeleteWrap show={showDeleteModal} fileID={fileID} />
+                <MenuDeleteWrap show={showDeleteModal} fileID={fileID} unAuth={unAuth} />
                 <MenuQRWrap show={showQRModal} fileID={fileID} />
             </main>
         </StorageLayout>

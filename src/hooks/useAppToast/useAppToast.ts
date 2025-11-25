@@ -28,7 +28,7 @@ export const useAppToast = () => {
             whiteSpace: 'nowrap',
             textOverflow: 'ellipsis',
             zIndex: 999,
-            color: '#fff',
+            color: '#999',
             fontWeight: '100'
         }
     }
