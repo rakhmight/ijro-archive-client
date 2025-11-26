@@ -6,6 +6,8 @@ import { RootState } from '../../../../../../store'
 import QRCode from "react-qr-code";
 import { MdQrCodeScanner } from "react-icons/md";
 import { FaCopy, FaDownload } from "react-icons/fa";
+import { useAppToast } from '../../../../../../hooks/useAppToast/useAppToast'
+import { ToastColorScheme, ToastStatus } from '../../../../../../hooks/useAppToast/enums'
 
 interface CtxMenuDeleteModalProps {
     fileID: string
@@ -14,6 +16,7 @@ interface CtxMenuDeleteModalProps {
 const CtxMenuQRModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({state, handler, fileID}) => {
     
     const { files, params } = useSelector((state:RootState)=>state)
+    const { showToast } = useAppToast()
 
     const [fileName, setFileName] = useState<string>('')
 
@@ -28,6 +31,12 @@ const CtxMenuQRModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({stat
             } else {
                 fallbackCopyToClipboard(textToCopy); 
             }
+            
+            showToast({
+                title: 'Ссылка скопирована',
+                status: ToastStatus.Info,
+                colorScheme: ToastColorScheme.Info
+            })
         } catch (err) {
             console.error('Failed to copy text to clipboard:', err);
         }
@@ -62,7 +71,7 @@ const CtxMenuQRModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({stat
                 <div className='w-full flex flex-col items-center gap-[20px]'>
                     <QRCode
                     id="QRCode"
-                    value={`${params.serverBase}/public/${fileName}`}
+                    value={`${params.serverBase}/public/${encodeURIComponent(fileName)}`}
                     fgColor='var(--dark-main-color)'
                     size={200}
                     />
@@ -84,7 +93,7 @@ const CtxMenuQRModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({stat
                             ctx.drawImage(img, 0, 0);
                             const pngFile = canvas.toDataURL("image/png");
                             const downloadLink = document.createElement("a");
-                            downloadLink.download = `(QR) ${fileName}`;
+                            downloadLink.download = `(QR) ${fileName}.png`;
                             downloadLink.href = `${pngFile}`;
                             downloadLink.click();
                             };
