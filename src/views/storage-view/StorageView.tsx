@@ -309,6 +309,7 @@ const StorageView : FC = () => {
                     switchActionSwitcher()
                 } else {
                     deleteFile(newFileTempID)
+                    switchActionSwitcher()
                     if(fileData.statusCode == 401){
                         unAuth()
                     } else if(fileData.statusCode == 400){
@@ -340,6 +341,8 @@ const StorageView : FC = () => {
                 }
             }
         } catch (error) {
+            deleteFile(newFileTempID)
+            switchActionSwitcher()
             return showToast({
                 title: 'Север не отвечает',
                 status: ToastStatus.Error,
@@ -554,7 +557,7 @@ const StorageView : FC = () => {
                             ) : (
                                 
                                 <div>
-                                    <Button className='w-full' colorScheme='whiteAlpha' onClick={() => filePickerRef.current.click()}>
+                                    <Button size={ params.isMobile ? 'sm' : 'md' } className='w-full' colorScheme='whiteAlpha' onClick={() => filePickerRef.current.click()}>
                                         <div className='flex items-center gap-[5px]'>
                                             <Icon as={FaUpload} />
                                             <Text>Загрузить файл</Text>
@@ -851,7 +854,15 @@ const StorageView : FC = () => {
                                                                     </>
                                                                 )
                                                             }
-                                                            <td>{ file.name }</td>
+                                                            <td className='flex items-center gap-[5px]'>
+                                                                { file.name }
+                                                                {
+                                                                    
+                                                                    file.status == FileStatus.Load && (
+                                                                        <Spinner size='sm' color='var(--main-color)' />
+                                                                    )
+                                                                }
+                                                            </td>
                                                             <td className={ params.isMobile ? 'w-[70px] bg-[#fff]' : 'w-[200px]' }>{ getFullTime(file.createdAt) }</td>
                                                             <td className={ params.isMobile ? 'w-[70px] bg-[#fff]' : 'w-[150px]' }>{ formatBytes(file.size) }</td>
                                                             <td className={ params.isMobile ? 'w-[50px] bg-[#fff]' : 'w-[120px] text-center' }>

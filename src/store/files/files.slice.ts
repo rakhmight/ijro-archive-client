@@ -18,6 +18,7 @@ export const filesSlice = createSlice({
 
         deleteFile: (state, data:reducerBase<string>) => {
             const target = state.files.find(f => f.id == data.payload)
+            
             if(target){
                 const index = state.files.indexOf(target)
                 state.files.splice(index, 1)
