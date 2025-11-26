@@ -1,10 +1,13 @@
 import { FC, PropsWithChildren } from 'react'
-import styles from './GeneralLayout.module.css'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../../store'
 
 const GeneralLayout : FC<PropsWithChildren<unknown>> = ({ children }) => {
 
+    const { params } = useSelector((state:RootState)=>state)
+    
     return (
-        <div className={styles.layout}>
+        <div className={`w-full h-[100vh] relative ${ params.isMobile ? 'bg-[var(--dark-main-color)]' : 'bg-[var(--bg-color)]' }`}>
             { children }
         </div>
     )

@@ -57,7 +57,8 @@ const CtxMenuQRModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({stat
         icon: MdQrCodeScanner,
         title: 'QR-код',
         iColor: '#888',
-        titleColor: 'var(--main-color)'
+        titleColor: 'var(--main-color)',
+        width: params.isMobile ? '100%' : ''
     }
 
     useEffect(() => {

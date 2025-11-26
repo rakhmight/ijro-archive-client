@@ -7,5 +7,6 @@ declare interface File {
     name: string,
     size: number,
     createdAt: Date,
-    status: import('./enums').FileStatus
+    status: import('./enums').FileStatus,
+    type: import('./enums').FileType
 }

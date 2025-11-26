@@ -3,5 +3,6 @@ declare interface Params {
     serverBase: string,
 
     switcher: boolean,
-    actionSwitcher: boolean
+    actionSwitcher: boolean,
+    isMobile: boolean
 }

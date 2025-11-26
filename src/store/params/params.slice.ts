@@ -5,7 +5,8 @@ const initialState:Params = {
     serverBase: 'http://ijroarchive.uz',
 
     switcher: true,
-    actionSwitcher: true
+    actionSwitcher: true,
+    isMobile: false
 }
 
 export const paramsSlice = createSlice({
@@ -18,6 +19,10 @@ export const paramsSlice = createSlice({
         switchActionSwitcher: (state) => {
             state.actionSwitcher = !state.actionSwitcher
         },
+
+        changeIsMobile: (state, data:reducerBase<boolean>) => {
+            state.isMobile = data.payload
+        }
 
     }
 })

@@ -103,26 +103,48 @@ const AuthView : FC = () => {
   
     return(
         <AuthLayout>
-            <div className='grid grid-cols-[1fr_1fr] w-full'>
+            <div className={ params.isMobile ? 'flex flex-col' : 'grid grid-cols-[1fr_1fr] w-full' }>
 
-                <div className='w-full h-[100vh] bg-[var(--main-color)] flex justify-center items-center'>
-                    <div className='flex flex-col gap-[30px]'>
-                        <CustomImage
-                        sizeClassName=''
-                        src='/images/cloud-hosting.png'
-                        alt=''
-                        />
+                {
+                   !params.isMobile && (
+                        <div className='w-full h-[100vh] bg-[var(--main-color)] flex justify-center items-center'>
+                            <div className='flex flex-col gap-[30px]'>
+                                <CustomImage
+                                sizeClassName=''
+                                src='/images/cloud-hosting.png'
+                                alt=''
+                                />
 
-                        <div>
-                            <Heading fontSize='3xl' fontWeight='bold' color="#fff" textAlign='center'>IJRO ARCHIVE UZ</Heading>
-                            <Text color="#999" textAlign='center'>Облачное хранилище</Text>
+                                <div>
+                                    <Heading fontSize='3xl' fontWeight='bold' color="#fff" textAlign='center'>IJRO ARCHIVE UZ</Heading>
+                                    <Text color="#999" textAlign='center'>Облачное хранилище</Text>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                   )
+                }
 
 
-                <div className='w-full h-full flex justify-center items-center'>
-                    <div className='bg-[var(--block-bg)] p-[30px] rounded w-[25vw] flex flex-col gap-[30px]'>
+                <div className={`w-full h-full flex justify-center items-center ${ params.isMobile ? 'flex-col gap-[30px]' : ''}`}>
+
+                    {
+                        params.isMobile && (
+                            <div className='flex gap-[15px]'>   
+                                <CustomImage
+                                sizeClassName='w-[50px] mt-[4px]'
+                                src='/images/logo.png'
+                                alt=''
+                                />
+                                
+                                <div>
+                                    <Heading color='#fff' size='md'>Ijro archive UZ</Heading>
+                                    <Text color="#999">Облачное хранилище</Text>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    <div className={` ${ params.isMobile ? 'w-full' : 'w-[25vw]' } bg-[var(--block-bg)] p-[30px] rounded flex flex-col gap-[30px]`}>
                         <div className='w-full flex flex-col gap-[10px]'>
                             <Heading fontSize='xl' fontWeight='bold' color="var(--special-color)" textAlign='center'>Вход</Heading>
                             <Divider />

@@ -36,7 +36,8 @@ const MenuDeleteModal : FC<NavigationModalProps&CtxMenuDeleteModalProps> = ({sta
         icon: FaRegTrashAlt,
         title: 'Удаление файла',
         iColor: '#888',
-        titleColor: 'var(--red-color)'
+        titleColor: 'var(--red-color)',
+        width: params.isMobile ? '100%' : ''
     }
 
     useEffect(() => {
