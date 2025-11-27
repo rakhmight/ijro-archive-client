@@ -809,7 +809,7 @@ const StorageView : FC = () => {
 
                                                 <div className='px-[15px] py-[10px] bg-[var(--main-color)]'>
                                                     <Tooltip label={ file.name }>
-                                                        <Text className='two-line-clamp' fontSize='0.95rem' color='#fff'>{ file.name }</Text>
+                                                        <Text className='two-line-clamp w-[222px]' fontSize='0.95rem' color='#fff'>{ file.name }</Text>
                                                     </Tooltip>
                                                     <Text fontSize='0.9rem' color='#aaa'>{ getFullTime(file.createdAt) } ({formatBytes(file.size)})</Text>
                                                 </div>
